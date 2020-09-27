@@ -1,48 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { dbService, storageService } from 'fbase';
+import { dbService } from 'fbase';
 import Nweet from 'components/Nweet';
-import { v4 as uuidv4 } from 'uuid';
+import NweetFactory from 'components/NweetFactory';
 
 const Home = ({ userObj }) => {
-  const [nweet, setNweet] = useState('');
   const [nweets, setNweets] = useState([]);
-  const [attachment, setAttachment] = useState(null);
-
-  const onSubmit = async event => {
-    event.preventDefault();
-    const fileRef = storageService.ref().child(`${userObj.uid}/${uuidv4()}`);
-    const response = await fileRef.putString(attachment, 'data_url');
-    console.log(response);
-    // await dbService.collection('nweets').add({
-    //   text: nweet,
-    //   createdAt: Date.now(),
-    //   creatorId: userObj.uid,
-    // });
-    // setNweet('');
-  };
-  const onChange = event => {
-    const {
-      target: { value },
-    } = event;
-    setNweet(value);
-  };
-  const onFileChange = event => {
-    const {
-      target: { files },
-    } = event;
-    const theFile = files[0];
-    const reader = new FileReader();
-    reader.onloadend = finishedEvent => {
-      const {
-        target: { result },
-      } = finishedEvent;
-      setAttachment(result);
-    };
-    reader.readAsDataURL(theFile);
-  };
-  const onClearAttachmentClick = () => {
-    setAttachment(null);
-  };
 
   useEffect(() => {
     dbService.collection('nweets').onSnapshot(snapshot => {
@@ -55,27 +17,9 @@ const Home = ({ userObj }) => {
   }, []);
 
   return (
-    <div>
-      <form>
-        <input
-          value={nweet}
-          onChange={onChange}
-          type="text"
-          placeholder="What's on your mind?"
-          maxLength={120}
-        />
-        <input onChange={onFileChange} type="file" accept="image/*" />
-        <button onClick={onSubmit} type="submit">
-          Nweet
-        </button>
-        {attachment && (
-          <div>
-            <img src={attachment} width="50px" height="50px" alt="" />
-            <button onClick={onClearAttachmentClick}>Clear</button>
-          </div>
-        )}
-      </form>
-      <div>
+    <div className="container">
+      <NweetFactory userObj={userObj} />
+      <div style={{ marginTop: 30 }}>
         {nweets.map(nweet => (
           <Nweet
             key={nweet.id}
